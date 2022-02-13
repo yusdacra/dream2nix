@@ -2,6 +2,7 @@
   lib,
   pkgs,
 
+  externals,
   ...
 }:
 
@@ -26,40 +27,24 @@ let
     inherit lib pkgs getSource getSourceSpec getDependencies getCyclicDependencies;
   };
 
-  # Generates a shell script that writes git vendor entries to .cargo/config.
-  writeGitVendorEntries =
-    let
-      makeEntry = source:
-        ''
-        [source."${source.url}"]
-        replace-with = "vendored-sources"
-        git = "${source.url}"
-        ${l.optionalString (source ? type) "${source.type} = \"${source.value}\""}
-        '';
-      entries = l.map makeEntry subsystemAttrs.gitSources;
-    in ''
-      cat >> ../.cargo/config <<EOF
-      ${l.concatStringsSep "\n" entries}
-      EOF
-    '';
+  crane = externals.crane;
 
   buildPackage = pname: version:
     let
+      override = produceDerivation pname;
+
       src = getSource pname version;
       vendorDir = vendorPackageDependencies pname version;
+
+      deps = override (crane.buildDepsOnly {
+        inherit pname version src;
+        cargoVendorDir = vendorDir;
+      });
     in
-    produceDerivation pname (pkgs.rustPlatform.buildRustPackage {
+    override (crane.cargoBuild {
       inherit pname version src;
-
-      postUnpack = ''
-        ln -s ${vendorDir} ./nix-vendor
-      '';
-
-      cargoVendorDir = "../nix-vendor";
-
-      preBuild = ''
-        ${writeGitVendorEntries}
-      '';
+      cargoVendorDir = vendorDir;
+      cargoArtifacts = deps;
     });
 in
 rec {
