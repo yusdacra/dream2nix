@@ -298,6 +298,7 @@ let
   # build a dream lock via a specific builder
   callBuilder =
     {
+      source,
       builder,
       builderArgs,
       fetchedSources,
@@ -363,6 +364,7 @@ let
           inherit
             buildPackageWithOtherBuilder
             produceDerivation
+            source
           ;
 
           inherit (dreamLockInterface)
@@ -469,6 +471,7 @@ let
           fetchedSources
           allOutputs
           sourceOverrides
+          source
         ;
 
         builder = builder';
