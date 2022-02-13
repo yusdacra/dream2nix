@@ -142,8 +142,8 @@ let
           inherit (pkgs) lib;
         };
         mkDummySrc = importLibFile "mkDummySrc" {
-          inherit (pkgs) writeTOML writeText runCommandLocal lib;
-          inherit cleanCargoToml findCargoFiles;
+          inherit (pkgs) writeText runCommandLocal lib;
+          inherit writeTOML cleanCargoToml findCargoFiles;
         };
 
         mkCargoDerivation = importLibFile "mkCargoDerivation" ({
