@@ -38,6 +38,7 @@ let
         '';
       entries = l.map makeEntry subsystemAttrs.gitSources;
     in ''
+      mkdir -p ../.cargo/ && touch ../.cargo/config
       cat >> ../.cargo/config <<EOF
       ${l.concatStringsSep "\n" entries}
       EOF
