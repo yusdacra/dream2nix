@@ -22,32 +22,15 @@
 let
   l = lib // builtins;
 
-  vendorPackageDependencies = import ../vendor.nix {
-    inherit lib pkgs getSource getSourceSpec getDependencies getCyclicDependencies;
+  vendoring = import ../vendor.nix {
+    inherit lib pkgs getSource getSourceSpec
+    getDependencies getCyclicDependencies subsystemAttrs;
   };
-
-  # Generates a shell script that writes git vendor entries to .cargo/config.
-  writeGitVendorEntries =
-    let
-      makeEntry = source:
-        ''
-        [source."${source.url}"]
-        replace-with = "vendored-sources"
-        git = "${source.url}"
-        ${l.optionalString (source ? type) "${source.type} = \"${source.value}\""}
-        '';
-      entries = l.map makeEntry subsystemAttrs.gitSources;
-    in ''
-      mkdir -p ../.cargo/ && touch ../.cargo/config
-      cat >> ../.cargo/config <<EOF
-      ${l.concatStringsSep "\n" entries}
-      EOF
-    '';
 
   buildPackage = pname: version:
     let
       src = getSource pname version;
-      vendorDir = vendorPackageDependencies pname version;
+      vendorDir = vendoring.vendorPackageDependencies pname version;
     in
     produceDerivation pname (pkgs.rustPlatform.buildRustPackage {
       inherit pname version src;
@@ -59,7 +42,7 @@ let
       cargoVendorDir = "../nix-vendor";
 
       preBuild = ''
-        ${writeGitVendorEntries}
+        ${vendoring.writeGitVendorEntries}
       '';
     });
 in

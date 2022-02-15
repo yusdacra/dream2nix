@@ -6,6 +6,7 @@
   getSourceSpec,
   getDependencies,
   getCyclicDependencies,
+  subsystemAttrs,
 }:
 let
   l = lib // builtins;
@@ -18,6 +19,24 @@ let
     l.unique (l.flatten (
       direct ++ (l.map (dep: getAllTransitiveDependencies dep.name dep.version) direct)
     ));
+in {
+  # Generates a shell script that writes git vendor entries to .cargo/config.
+  writeGitVendorEntries =
+    let
+      makeEntry = source:
+        ''
+        [source."${source.url}"]
+        replace-with = "vendored-sources"
+        git = "${source.url}"
+        ${l.optionalString (source ? type) "${source.type} = \"${source.value}\""}
+        '';
+      entries = l.map makeEntry subsystemAttrs.gitSources;
+    in ''
+      mkdir -p ../.cargo/ && touch ../.cargo/config
+      cat >> ../.cargo/config <<EOF
+      ${l.concatStringsSep "\n" entries}
+      EOF
+    '';
 
   vendorPackageDependencies = pname: version:
     let
@@ -81,4 +100,4 @@ let
         sources
        }
     '';
-in vendorPackageDependencies
+}
