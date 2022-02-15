@@ -42,7 +42,7 @@ let
       cargoVendorDir = "../nix-vendor";
 
       preBuild = ''
-        ${vendoring.writeGitVendorEntries}
+        ${vendoring.writeGitVendorEntries "vendored-sources"}
       '';
     });
 in

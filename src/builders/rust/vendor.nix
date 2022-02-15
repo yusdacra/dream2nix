@@ -21,12 +21,12 @@ let
     ));
 in {
   # Generates a shell script that writes git vendor entries to .cargo/config.
-  writeGitVendorEntries =
+  writeGitVendorEntries = replaceWith:
     let
       makeEntry = source:
         ''
         [source."${source.url}${l.optionalString (source ? type) "?${source.type}=${source.value}"}"]
-        replace-with = "vendored-sources"
+        replace-with = "${replaceWith}"
         git = "${source.url}"
         ${l.optionalString (source ? type) "${source.type} = \"${source.value}\""}
         '';
