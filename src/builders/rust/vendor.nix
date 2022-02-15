@@ -21,6 +21,7 @@ let
     ));
 in {
   # Generates a shell script that writes git vendor entries to .cargo/config.
+  # `replaceWith` is the name of the vendored source(s) to use.
   writeGitVendorEntries = replaceWith:
     let
       makeEntry = source:
@@ -38,6 +39,8 @@ in {
       EOF
     '';
 
+  # Vendor a package's dependencies like how `cargo vendor` would do,
+  # so we can use it with `cargo`.
   vendorPackageDependencies = pname: version:
     let
       deps = getAllTransitiveDependencies pname version;
