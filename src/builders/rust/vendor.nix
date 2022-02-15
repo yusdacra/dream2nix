@@ -25,7 +25,7 @@ in {
     let
       makeEntry = source:
         ''
-        [source."${source.url}"]
+        [source."${source.url}${l.optionalString (source ? type) "?${source.type}=${source.value}"}"]
         replace-with = "vendored-sources"
         git = "${source.url}"
         ${l.optionalString (source ? type) "${source.type} = \"${source.value}\""}
